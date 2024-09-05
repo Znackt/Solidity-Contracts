@@ -7,7 +7,7 @@ contract Lottery {
     address payable[] public participants;
 
     constructor() {
-        manager=msg.sender; //global variable
+        manager = msg.sender; //global variable
     }
 
     receive() external payable {
@@ -15,23 +15,32 @@ contract Lottery {
         participants.push(payable(msg.sender));
     }
 
-    function getBalance() public view returns(uint) {
-        require(msg.sender==manager);
+    function getBalance() public view returns (uint) {
+        require(msg.sender == manager);
         return address(this).balance;
     }
 
-    function random() public view returns(uint) {
-        return uint(keccak256(abi.encodePacked(block.difficulty,block.timestamp,participants.length)));
+    function random() public view returns (uint) {
+        return
+            uint(
+                keccak256(
+                    abi.encodePacked(
+                        block.prevrandao,
+                        block.timestamp,
+                        participants.length
+                    )
+                )
+            );
     }
 
     function selectWinner() public {
-        require(msg.sender==manager);
-        require(participants.length>=3);
-        uint r=random();
+        require(msg.sender == manager);
+        require(participants.length >= 3);
+        uint r = random();
         address payable winner;
         uint index = r % participants.length;
-        winner=participants[index];
+        winner = participants[index];
         winner.transfer(getBalance());
-        participants=new address payable[](0);
+        participants = new address payable[](0);
     }
 }
